@@ -38,19 +38,20 @@ const scripts = done => {
     const _bundles = (Array.isArray(paths.js_bundles) ? paths.js_bundles : [paths.js_bundles]);
 
     let bundles = [..._bundles];
-    const webpackOptions = { mode: "development" };
-    if (!isProd) webpackOptions.devtool = "cheap-source-map";
-    else webpackOptions.devtool = "none";
 
     const buildScript = () => {
         if (!bundles.length) {
             return typeof done !== 'function' || done();
         }
 
-        const b = bundles.pop();
-        
-        console.log(chalk.bold.yellow(b.src));
-        return gulp.src(b.src)
+        const {src, name, mode} = bundles.pop();
+        // use mode if specified explicitly; otherwise choose by --env
+        const webpackOptions = {mode: mode || (isProd ? "production" : "development")};
+        if (!isProd) webpackOptions.devtool = "cheap-source-map";
+        else webpackOptions.devtool = "none";
+
+        console.log(chalk.bold.yellow(src));
+        return gulp.src(src)
             .pipe(webpack(webpackOptions))
             .on('error', (err) => {
                 console.log(err.toString());
@@ -58,7 +59,7 @@ const scripts = done => {
             })
             .pipe(plugins.rename(function (path) {
                 path.dirname = '';
-                path.basename = b.name;
+                path.basename = name;
             }))
             .pipe(gulp.dest(paths.dist))
             .on('end', buildScript);
@@ -70,27 +71,31 @@ const scripts = done => {
 const styles = done => {
     let bundles = Array.isArray(paths.scss_bundles) ?
         paths.scss_bundles : [{src: paths.scss, name: 'styles.css'}],
-        count = bundles.length,
-        isDone = false;
+        PLATFORM = isFirefox ? "firefox" : "chrome";
 
-    return !count ? done() :
-        bundles.map(b => {
-            gulp.src(b.src)
+    const buildStyle = () => {
+        if (!bundles.length) {
+            return typeof done !== 'function' || done();
+        }
+
+        const {src, name, platform} = bundles.pop();
+
+        if (!platform || platform === PLATFORM)
+        {
+            return gulp.src(src)
                 .pipe(plugins.sass())
                 .pipe(plugins.cleanCss())
                 .pipe(plugins.rename(function (path) {
                     path.dirname = '';
-                    path.basename = b.name;
+                    path.basename = name;
                 }))
                 .pipe(gulp.dest(paths.dist))
-                .on('end', function () {
-                    if ((--count === 0) && !isDone) {
-                        isDone = true;
-                        return typeof done !== 'function' || done();
-                    }
-                    return true;
-                });
-        });
+                .on('end', buildStyle);
+        }
+        else buildStyle();
+    };
+
+    buildStyle();
 };
 
 const copyAs = done => {
