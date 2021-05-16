@@ -69,9 +69,10 @@ const scripts = done => {
 };
 
 const styles = done => {
-    let bundles = Array.isArray(paths.scss_bundles) ?
-        paths.scss_bundles : [{src: paths.scss, name: 'styles.css'}],
-        PLATFORM = isFirefox ? "firefox" : "chrome";
+    let _bundles = Array.isArray(paths.scss_bundles) ?
+        paths.scss_bundles : [{src: paths.scss, name: 'styles.css'}];
+    const bundles = [..._bundles];
+    const PLATFORM = isFirefox ? "firefox" : "chrome";
 
     const buildStyle = () => {
         if (!bundles.length) {
@@ -79,7 +80,6 @@ const styles = done => {
         }
 
         const {src, name, platform} = bundles.pop();
-
         if (!platform || platform === PLATFORM)
         {
             return gulp.src(src)
