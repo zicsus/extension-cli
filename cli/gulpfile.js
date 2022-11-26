@@ -6,6 +6,7 @@ const paths = require('../config/build.json');
 const plugins = require('gulp-load-plugins')();
 const webpack = require('webpack');
 const gulpWebpack = require('webpack-stream');
+const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
 const sass = require('gulp-sass')(require('sass'));
 const Utilities = require('./utilities').Utilities;
 const argv = require('yargs').argv;
@@ -48,6 +49,9 @@ const script = ({src, name, mode}, done = _ => true) => {
         output: {filename: `${name}.js`},
         // use source map with dev builds only
         devtool: isProd ? undefined : 'cheap-source-map',
+        plugins: [
+            new NodePolyfillPlugin()
+        ],
         module: {
             rules:[
                 {
@@ -59,6 +63,10 @@ const script = ({src, name, mode}, done = _ => true) => {
                     resolve: {
                         fullySpecified: false,
                     },
+                },
+                {
+                    test: /\.json$/,
+                    type: 'json',
                 }
             ]
         }
