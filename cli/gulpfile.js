@@ -60,6 +60,12 @@ const script = ({src, name, mode}, done = _ => true) => {
                         fullySpecified: false,
                     },
                 }
+            ],
+            loaders: [
+                {
+                    test: /\.json$/,
+                    loader: 'json-loader'
+                }
             ]
         }
     };
