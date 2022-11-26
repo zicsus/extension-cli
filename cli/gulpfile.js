@@ -4,7 +4,8 @@ const chalk = require('chalk');
 const gulpChange = require('gulp-change');
 const paths = require('../config/build.json');
 const plugins = require('gulp-load-plugins')();
-const webpack = require('webpack-stream');
+const webpack = require('webpack');
+const gulpWebpack = require('webpack-stream');
 const sass = require('gulp-sass')(require('sass'));
 const Utilities = require('./utilities').Utilities;
 const argv = require('yargs').argv;
@@ -50,7 +51,7 @@ const script = ({src, name, mode}, done = _ => true) => {
     };
 
     return gulp.src(src)
-        .pipe(webpack(webpackOptions))
+        .pipe(gulpWebpack(webpackOptions, webpack))
         .on('error', (err) => {
             console.log(err.toString());
             this.emit('end');
